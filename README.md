@@ -1,2 +1,4 @@
 # apistr
-minimalist library for serving APIs over nostr relays
+
+wip minimalist library for serving APIs over nostr relays
+
