@@ -96,7 +96,11 @@ func (s *Server) listenAndServeRelay(ctx context.Context, u url.URL) {
 		case <-timer.C:
 			relay := nostr.NewRelay(ctx, u.String(),
 				nostr.WithAuthHandler(func(ctx context.Context, authEvent *nostr.Event) (ok bool) {
-					authEvent.Sign(s.PrivateKey)
+					err := authEvent.Sign(s.PrivateKey)
+					if err != nil {
+						log.Printf("error authenticating:", err)
+						return false
+					}
 					return true
 				}),
 			)
@@ -106,6 +110,8 @@ func (s *Server) listenAndServeRelay(ctx context.Context, u url.URL) {
 				log.Println(u, "retrying in:", timeout)
 				break
 			}
+			// Time for authentication to happen if relay requires auth for certain subscriptions:
+			time.Sleep(time.Second*10)
 			sub, err := relay.Subscribe(ctx, requests_filter)
 			if err != nil {
 				log.Println(u, "error subscribing to requests:", err)
